@@ -3,7 +3,7 @@
 Concept: an orange isometric part (cube) inside viewfinder corners = "thumbnail",
 on a graphite rounded tile. Small sizes drop the viewfinder for clarity.
 """
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import math, os, sys
 
 ORANGE = (232, 109, 49)      # #E86D31 A3D logo orange
@@ -12,8 +12,10 @@ ORANGE_DK = (176, 74, 26)    # shaded side
 GRAPHITE = (38, 38, 38)      # #262626
 GRAPHITE_LT = (58, 58, 58)
 WHITE = (244, 244, 244)      # #F4F4F4
+FONT = os.environ.get('MONTSERRAT', os.path.expanduser('~/fonts/Montserrat.ttf'))  # variable font from Google Fonts
 
-def draw(size, detailed):
+def draw(size, detailed, label=None):
+    label = size >= 32 if label is None else label
     S = 8                       # supersampling
     W = size * S
     im = Image.new('RGBA', (W, W), (0, 0, 0, 0))
@@ -29,8 +31,12 @@ def draw(size, detailed):
         im.paste(hl, (0, 0), Image.composite(mask, Image.new('L', (W, W), 0), hl.getchannel('A')))
         d = ImageDraw.Draw(im)
 
-    cx, cy = W / 2, W / 2 + W * 0.02
-    r = W * (0.27 if detailed else 0.36)     # cube "radius"
+    if label:   # leave room for the STEP label underneath
+        cx, cy = W / 2, W * (0.43 if detailed else 0.40)
+        r = W * (0.24 if detailed else 0.27)
+    else:
+        cx, cy = W / 2, W / 2 + W * 0.02
+        r = W * (0.27 if detailed else 0.36)     # cube "radius"
     c30, s30 = math.cos(math.pi / 6), 0.5
     top = (cx, cy - r)
     ul, ur = (cx - r * c30, cy - r * s30), (cx + r * c30, cy - r * s30)
@@ -56,7 +62,7 @@ def draw(size, detailed):
         for a, b in [(top, ur), (ur, lr), (lr, bot), (bot, ll), (ll, ul), (ul, top), (ul, ctr), (ur, ctr), (ctr, bot)]:
             d.line([a, b], fill=(60, 26, 8), width=lw)
         # viewfinder corners
-        m, L, t = W * 0.17, W * 0.15, max(2, int(W * 0.035))
+        m, L, t = W * 0.17, W * (0.085 if label else 0.15), max(2, int(W * 0.035))
         for sx in (0, 1):
             for sy in (0, 1):
                 x = m if sx == 0 else W - m
@@ -66,6 +72,11 @@ def draw(size, detailed):
                 d.line([(x, y), (x + dx, y)], fill=WHITE, width=t)
                 d.line([(x, y), (x, y + dy)], fill=WHITE, width=t)
                 d.ellipse([x - t / 2, y - t / 2, x + t / 2, y + t / 2], fill=WHITE)
+    if label:
+        f = ImageFont.truetype(FONT, int(W * (0.135 if detailed else 0.21)))
+        f.set_variation_by_name('ExtraBold')
+        ty = W * (0.835 if detailed else 0.80)
+        d.text((W / 2, ty), 'STEP', font=f, fill=WHITE, anchor='mm')
     return im.resize((size, size), Image.LANCZOS)
 
 if __name__ == '__main__':
