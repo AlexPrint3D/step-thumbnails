@@ -1,0 +1,5 @@
+deps/
+build-win/
+build-linux/
+out/
+installer/*.exe
