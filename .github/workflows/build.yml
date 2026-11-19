@@ -14,7 +14,7 @@ jobs:
   windows-x64:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install toolchain
         run: |
@@ -22,7 +22,7 @@ jobs:
           sudo apt-get install -y -qq mingw-w64 ninja-build nsis cmake
 
       - name: Cache OpenCASCADE (MinGW static build)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: deps/occt-win
           key: occt-7.7.2-mingw-${{ hashFiles('cmake/mingw-w64.cmake') }}
@@ -31,7 +31,7 @@ jobs:
         run: bash build.sh
 
       - name: Upload installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: A3D-STEP-Thumbnails
           path: |
@@ -44,8 +44,8 @@ jobs:
     needs: windows-x64
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
         with:
           name: A3D-STEP-Thumbnails
           path: dist
@@ -81,7 +81,7 @@ jobs:
           Start-Sleep 3
           if (Test-Path "Registry::HKEY_LOCAL_MACHINE\Software\Classes\CLSID\{AE41D446-CE3B-42C7-9539-7513CF65E803}") { throw "CLSID left behind" }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: test-thumbnails
@@ -92,12 +92,12 @@ jobs:
     needs: test-on-windows
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           name: A3D-STEP-Thumbnails
           path: dist
       - name: Publish release (on tag v*)
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: dist/installer/*-setup.exe
